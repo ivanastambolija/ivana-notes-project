@@ -1,20 +1,20 @@
-import React, { useState } from 'react'
-import uuid from 'react-uuid'
-import DeleteModal from './Components/DeleteModal'
-import NoteModal from './Components/NoteModal'
-import ListOfNotes from './Components/ListOfNotes'
+import React, { useState, useEffect } from 'react';
+//import DeleteModal from './Components/DeleteModal';
+import NoteModal from './Components/NoteModal';
+import ListOfNotes from './Components/ListOfNotes';
 
 
 export default function App() {
   const [showModal, setShowModal] = useState(false)
-  const [notesList, setNotesList] = useState([])
-  const [note, setNote] = useState({
-    id:uuid(), 
-    title:'', 
-    content:''
-  })
+  const [notes, setNotes] = useState(JSON.parse(localStorage.getItem('notes')) || [])
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
   const [deleteModal, setDeleteModal] = useState(false)
   const [selectedNote, setSelectedNote] = useState(null)
+
+  useEffect(() => {
+     localStorage.setItem('notes', JSON.stringify(notes))
+  }, [notes])
 
   const openModal = () => {
     setShowModal(true)
@@ -24,77 +24,69 @@ export default function App() {
     setShowModal(false)
   }
 
-  const openDeleteModal = () => {
+  function handleTitleChange(e) {
+    setTitle(e.target.value)
+  }
+
+  function handleContentChange(e) {
+    setContent(e.target.value)
+  }
+
+  const editNote = (note) => {
     setSelectedNote(note)
-    console.log(selectedNote)
+    openModal()
+  }
+
+  const openDeleteModal = (note) => {
     setDeleteModal(true)
+    setSelectedNote(note)
   }
 
   const closeDeleteModal = () => {
     setDeleteModal(false)
   }
 
-  const handleChange = (event) => {
-    setNote({
-      ...note,
-      [event.target.name]: event.target.value
-    })
-  }
-
-  const saveNote = (event) => {
-    event.preventDefault();
-    setNotesList([note, ...notesList])
-    setNote({id:uuid(), title:'', content:''})
-    closeModal()
-  }
-
-  const editNote = () => {
-    openModal()
-    setSelectedNote({note})
-    console.log(selectedNote)
-    closeModal()
-  } 
-
-  const deleteNote = (note) => {
-    setSelectedNote({note})
-    console.log(selectedNote)
-    const newNotesList =  notesList.filter(note => note.id !== selectedNote.id)
-    setNotesList(newNotesList)
-    console.log('note deleted', newNotesList)
+  const deleteNote = (selectedNote) => {
+    const newNotesList =  notes.filter(note => note.id !== selectedNote.id)
+    setNotes(newNotesList)
     setSelectedNote(null)
     closeDeleteModal()
 	};
 
   return(
-    <div className={notesList.length === 0 ? 'no-notes' : 'with-notes'}>
+    <div className={notes.length === 0 ? 'no-notes' : 'with-notes'}>
       {!showModal && (
         <div className='add-note-btn'>
-          <button onClick={openModal}>Add Note</button>
+          <button id='add-btn' onClick={openModal}>Add Note</button>
         </div>)
       }
       {showModal && (
         <NoteModal 
           selectedNote={selectedNote}
-          handleChange={handleChange} 
-          note={note}
-          saveNote={saveNote} 
-          editNote={editNote}
+          setSelectedNote={setSelectedNote}
+          notes={notes}
+          setNotes={setNotes}
+          handleTitleChange={handleTitleChange}
+          handleContentChange={handleContentChange}
+          title={title}
+          setTitle={setTitle}
+          content={content}
+          setContent={setContent}
           closeModal={closeModal}
         />)
       }
       <ListOfNotes 
-        notesList={notesList} 
-        editNote ={editNote} 
+        notes={notes} 
+        editNote={editNote}
         openDeleteModal={openDeleteModal}
       />
-      
-      {deleteModal && (
-        <DeleteModal 
-          selectedNote={selectedNote} 
-          deleteNote={deleteNote} 
-          closeDeleteModal={closeDeleteModal} 
-        />)
-      }
+      {/* {deleteModal && (
+        // <DeleteModal 
+        //   selectedNote={selectedNote}
+        //   deleteNote={deleteNote} 
+        //   closeDeleteModal={closeDeleteModal}
+        // />)
+      } */}
     </div>
   )
 }
