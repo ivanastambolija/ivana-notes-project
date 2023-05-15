@@ -1,92 +1,119 @@
 import React, { useState, useEffect } from 'react';
-//import DeleteModal from './Components/DeleteModal';
+import uuid from 'react-uuid'
+import DeleteModal from './Components/DeleteModal';
 import NoteModal from './Components/NoteModal';
-import ListOfNotes from './Components/ListOfNotes';
+import NotesList from './Components/NotesList';
 
 
 export default function App() {
-  const [showModal, setShowModal] = useState(false)
+  const [showNoteModal, setShowNoteModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [notes, setNotes] = useState(JSON.parse(localStorage.getItem('notes')) || [])
-  const [title, setTitle] = useState('')
-  const [content, setContent] = useState('')
-  const [deleteModal, setDeleteModal] = useState(false)
   const [selectedNote, setSelectedNote] = useState(null)
 
   useEffect(() => {
      localStorage.setItem('notes', JSON.stringify(notes))
   }, [notes])
 
-  const openModal = () => {
-    setShowModal(true)
+  const openNoteModal = () => {
+    setShowNoteModal(true)
   }
 
-  const closeModal = () => {
-    setShowModal(false)
+  const closeNoteModal = () => {
+    setShowNoteModal(false)
+    setSelectedNote(null)
   }
 
-  function handleTitleChange(e) {
-    setTitle(e.target.value)
+  const openDeleteModal = () => {
+    setShowDeleteModal(true)
   }
 
-  function handleContentChange(e) {
-    setContent(e.target.value)
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false)
+    setSelectedNote(null)
+  }
+
+  const addNewNote = () => {
+    setSelectedNote(null)
+    openNoteModal()
   }
 
   const editNote = (note) => {
     setSelectedNote(note)
-    openModal()
+    openNoteModal()
   }
 
-  const openDeleteModal = (note) => {
-    setDeleteModal(true)
+  const deleteNote = (note) => {
     setSelectedNote(note)
-  }
+    openDeleteModal()
+	};
 
-  const closeDeleteModal = () => {
-    setDeleteModal(false)
-  }
+  const addNewNoteButtonAction = (newNote) => {
+    setNotes(prevNotes => [newNote, ...prevNotes])
+    closeNoteModal()
+	};
 
-  const deleteNote = (selectedNote) => {
-    const newNotesList =  notes.filter(note => note.id !== selectedNote.id)
-    setNotes(newNotesList)
-    setSelectedNote(null)
+  const editExistingNoteButtonAction = (existingNote) => {
+    const editedNotesList = notes.map((note) => {
+      if(note.id === existingNote.id) {
+        note = existingNote
+      }
+      return note
+    })
+
+    setNotes(editedNotesList)
+    closeNoteModal()
+	};
+
+  const cancelNoteButtonAction = () => {
+    closeNoteModal()
+	};
+
+  const deleteExistingNoteButtonAction = (existingNote) => {
+    const editedNotesList = notes.filter((note) => {
+      if(note.id === existingNote.id) {
+        return false
+      }
+      return true
+    })
+
+    setNotes(editedNotesList)
+    closeDeleteModal()
+	};
+
+  const cancelNoteDeleteButtonAction = () => {
     closeDeleteModal()
 	};
 
   return(
     <div className={notes.length === 0 ? 'no-notes' : 'with-notes'}>
-      {!showModal && (
+      {!showNoteModal && (
         <div className='add-note-btn'>
-          <button id='add-btn' onClick={openModal}>Add Note</button>
+          <button id='add-btn' onClick={addNewNote}>Add Note</button>
         </div>)
       }
-      {showModal && (
+      {showNoteModal && (
         <NoteModal 
-          selectedNote={selectedNote}
-          setSelectedNote={setSelectedNote}
-          notes={notes}
-          setNotes={setNotes}
-          handleTitleChange={handleTitleChange}
-          handleContentChange={handleContentChange}
-          title={title}
-          setTitle={setTitle}
-          content={content}
-          setContent={setContent}
-          closeModal={closeModal}
+          note={selectedNote}
+          handleOnAddButton={addNewNoteButtonAction}
+          handleOnEditButton={editExistingNoteButtonAction}
+          handleOnCancelButton={cancelNoteButtonAction}
         />)
       }
-      <ListOfNotes 
-        notes={notes} 
-        editNote={editNote}
-        openDeleteModal={openDeleteModal}
-      />
-      {/* {deleteModal && (
-        // <DeleteModal 
-        //   selectedNote={selectedNote}
-        //   deleteNote={deleteNote} 
-        //   closeDeleteModal={closeDeleteModal}
-        // />)
-      } */}
+      {!showNoteModal && notes.length && (
+        <NotesList 
+          notes={notes} 
+          handleOnEditButton={editNote}
+          handleOnDeleteButton={deleteNote}
+        />
+      )}
+      {showDeleteModal && (
+         <DeleteModal 
+           note={selectedNote}
+           handleOnDeleteButton={deleteExistingNoteButtonAction} 
+           handleOnCancelButton={cancelNoteDeleteButtonAction}
+        />)
+      }
     </div>
   )
 }

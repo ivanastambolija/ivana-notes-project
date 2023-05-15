@@ -1,42 +1,45 @@
-import React from "react";
+import React, { useState } from 'react'
 import uuid from 'react-uuid'
 
-export default function NoteModal( { selectedNote, setSelectedNote, notes, setNotes, closeModal, title, setTitle, content, setContent, handleTitleChange, handleContentChange }) {
+export default function NoteModal( {note, handleOnAddButton, handleOnEditButton, handleOnCancelButton }) {
+  const [title, setTitle] = useState(note ? note.title : '')
+  const [content, setContent] = useState(note ? note.content : '')
+
+  function handleTitleChange(e) {
+    setTitle(e.target.value)
+  }
   
+  function handleContentChange(e) {
+    setContent(e.target.value)
+  }
+
   const saveChanges = (e) => {
     e.preventDefault()
-    if(selectedNote) {
-      const editedNote = {...selectedNote, title, content}
-      console.log(editedNote)
-      const editedNotesArray = notes.map((note) => {
-        if(note.id === selectedNote.id) {
-          note = editedNote
-        }
-        return note
-      })
-      setNotes(editedNotesArray)
-      setTitle('')
-      setContent('')
-      setSelectedNote(null)
-    } else {
-      e.preventDefault()
-      const newNote = {
-        id: uuid(),
-        title: title,
-        content: content
-      }
-      setNotes(prevNotes => [newNote, ...prevNotes])
-      setTitle('')
-      setContent('')
-    } 
-    closeModal()
+    const newNote = {
+      id: uuid(),
+      title: title,
+      content: content
+    }
+
+    handleOnAddButton(newNote)
   }
+
+  const editChanges = (e) => {
+    const newNote = {
+      id: note.id,
+      title: title,
+      content: content
+    }
+
+    handleOnEditButton(newNote)
+  }
+
 
   return(
     <div className='modalBackground'>
       <div className='note-modal'>
         <header>
-          <h3>{selectedNote ? `Edit ${selectedNote.title}` : `Add Note`}</h3>
+          <h3>{note ? `Edit ${note.title}` : `Add Note`}</h3>
         </header>
         <form>
           <input 
@@ -55,8 +58,9 @@ export default function NoteModal( { selectedNote, setSelectedNote, notes, setNo
           >
           </textarea>
           <div className='btn-container'>
-            <button type='submit' onClick={saveChanges}>Save</button>
-            <button onClick={closeModal}>Cancel</button>
+            {!note && (<button type='submit' onClick={saveChanges}>Save</button>)}
+            {note && (<button type='submit' onClick={editChanges}>Edit</button>)}
+            <button onClick={handleOnCancelButton}>Cancel</button>
           </div>
         </form>
       </div>

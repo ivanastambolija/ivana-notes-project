@@ -1,7 +1,6 @@
 import React from "react";
 
-export default function NotesList({ notes, editNote, openDeleteModal }) {
-
+export default function NotesList({ notes, handleOnEditButton, handleOnDeleteButton }) {
     return(
         <ul className='notes-list' >
         {notes.map((note) => {
@@ -11,8 +10,8 @@ export default function NotesList({ notes, editNote, openDeleteModal }) {
                 <h3>{note.title}</h3>
                 <p>{note.content}</p>
                 <div className='btn-container'>
-                  <button onClick={() => editNote(note)}>Edit</button>
-                  <button onClick={openDeleteModal(note)}>Delete</button>
+                  <button onClick={() => handleOnEditButton(note)}>Edit</button>
+                  <button onClick={() => handleOnDeleteButton(note)}>Delete</button>
                 </div>
               </div>
             </li>
