@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import uuid from 'react-uuid'
 import DeleteModal from './Components/DeleteModal';
 import NoteModal from './Components/NoteModal';
 import NotesList from './Components/NotesList';
